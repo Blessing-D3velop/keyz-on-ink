@@ -234,3 +234,10 @@ button { cursor: pointer; }
   .admin-main { padding: 22px 14px 60px; }
   .stats-grid { grid-template-columns: 1fr; }
 }
+/* =========================================================
+   VISIBILITY CONTROL
+   ========================================================= */
+
+[hidden] {
+  display: none !important;
+}
