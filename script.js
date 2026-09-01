@@ -93,6 +93,8 @@ const GALLERY_IMAGES = [
   
 ];
 
+
+
 let galleryIndex = 0;
 
 function initGallery() {
@@ -100,7 +102,6 @@ function initGallery() {
   masonry.innerHTML = GALLERY_IMAGES.map((src, i) => `
     <div class="masonry-item" data-index="${i}">
       <img src="${src}" alt="Tattoo artwork ${i + 1}" loading="lazy">
-      <span class="zoom-hint"><i class="fa-solid fa-expand"></i> View</span>
     </div>
   `).join("");
 
