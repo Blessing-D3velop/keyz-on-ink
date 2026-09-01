@@ -74,14 +74,23 @@ function initHamburger() {
 
 /* ---------- Gallery (placeholder tattoo images) ---------- */
 const GALLERY_IMAGES = [
-  "https://images.unsplash.com/photo-1568515387631-8b650bbcdb90?q=80&w=800&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1590246814883-57764a4c0d24?q=80&w=800&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?q=80&w=800&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?q=80&w=800&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1621607512214-68297480165e?q=80&w=800&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1590246814883-57764a4c0d24?q=80&w=900&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1543872084-c7bd3822856f?q=80&w=800&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1552627019-947c3789ffb5?q=80&w=800&auto=format&fit=crop"
+  "images/g1.jpeg",
+  "images/g2.jpeg",
+  "images/g3.jpeg",
+  "images/g4.jpeg",
+  "images/g5.jpeg",
+  "images/g6.jpeg",
+  "images/g7.jpeg",
+  "images/g8.jpeg",
+  "images/g9.jpeg",
+  "images/g10.jpeg",
+  "images/g11.jpeg",
+  "images/g12.jpeg",
+  "images/g13.jpeg",
+  "images/g14.jpeg",
+  "images/g15.jpeg",
+  "images/g16.jpeg",
+  
 ];
 
 let galleryIndex = 0;
