@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — KEYZ INK</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- LOGIN VIEW -->
+<div class="admin-login-screen" id="loginScreen">
+  <form class="admin-login-card" id="loginForm">
+    <div class="admin-login-logo">KEYZ<span>INK</span></div>
+    <p class="admin-login-sub">Studio Admin</p>
+
+    <div class="form-row">
+      <label for="username">Username</label>
+      <input type="text" id="username" autocomplete="username" required>
+    </div>
+    <div class="form-row">
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password" required>
+    </div>
+
+    <p class="login-error" id="loginError"></p>
+
+    <button type="submit" class="btn btn-primary btn-block">Log In</button>
+  </form>
+</div>
+
+<!-- DASHBOARD VIEW -->
+<div class="admin-app" id="adminApp" hidden>
+
+  <header class="admin-header">
+    <div class="admin-logo">KEYZ<span>INK</span> <small>Admin</small></div>
+    <div class="admin-header-right">
+      <span id="whoami"></span>
+      <button class="btn btn-ghost" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log out</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <section class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <span class="stat-label">Total Bookings</span>
+        <span class="stat-value" id="statTotal">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Deposits Paid</span>
+        <span class="stat-value" id="statPaid">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Deposits Pending</span>
+        <span class="stat-value" id="statPending">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Deposit Revenue</span>
+        <span class="stat-value" id="statRevenue">—</span>
+      </div>
+    </section>
+
+    <section class="bookings-panel">
+      <div class="panel-header">
+        <h2>Bookings</h2>
+        <div class="filter-tabs" id="filterTabs">
+          <button class="filter-tab active" data-filter="">All</button>
+          <button class="filter-tab" data-filter="pending">Payment Pending</button>
+          <button class="filter-tab" data-filter="paid">Paid</button>
+          <button class="filter-tab" data-filter="confirmed">Confirmed</button>
+          <button class="filter-tab" data-filter="completed">Completed</button>
+          <button class="filter-tab" data-filter="cancelled">Cancelled</button>
+        </div>
+        <button class="btn btn-ghost btn-small" id="refreshBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="bookings-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Client</th>
+              <th>Contact</th>
+              <th>Service</th>
+              <th>Appointment</th>
+              <th>Deposit</th>
+              <th>Booking Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bookingsBody">
+            <tr><td colspan="8" class="empty-row">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Detail / description modal -->
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal-card">
+    <button class="modal-close" id="modalClose"><i class="fa-solid fa-xmark"></i></button>
+    <h3 id="modalTitle">Booking</h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

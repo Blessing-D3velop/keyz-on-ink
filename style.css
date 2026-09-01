@@ -29,8 +29,8 @@
     --pink-glow: rgba(255, 47, 104, 0.25);
     --pink-glow-strong: rgba(255, 47, 104, 0.45);
 
-    --border: rgba(255,255,255,0.09);
-    --border-light: rgba(255,255,255,0.14);
+    --border: rgba(255, 255, 255, 0.09);
+    --border-light: rgba(255, 255, 255, 0.14);
 
     --display: "Unbounded", sans-serif;
     --body: "Manrope", sans-serif;
@@ -40,7 +40,7 @@
     --radius: 20px;
     --radius-small: 12px;
 
-    --ease: cubic-bezier(.2,.8,.2,1);
+    --ease: cubic-bezier(.2, .8, .2, 1);
 }
 
 
@@ -62,11 +62,8 @@ html {
 body {
     background: var(--black);
     color: var(--white);
-
     font-family: var(--body);
-
     line-height: 1.6;
-
     overflow-x: hidden;
 }
 
@@ -134,7 +131,6 @@ ul {
     );
 
     margin: auto;
-
     padding: 110px 0;
 }
 
@@ -144,7 +140,6 @@ ul {
     gap: 11px;
 
     color: var(--pink);
-
     font-size: .7rem;
     font-weight: 800;
 
@@ -170,7 +165,6 @@ ul {
     font-family: var(--display);
 
     font-size: clamp(2rem, 5vw, 3.7rem);
-
     line-height: 1.05;
 
     letter-spacing: -.05em;
@@ -193,13 +187,11 @@ ul {
     background:
         linear-gradient(
             145deg,
-            rgba(255,255,255,.065),
-            rgba(255,255,255,.02)
+            rgba(255, 255, 255, .065),
+            rgba(255, 255, 255, .02)
         );
 
-    border:
-        1px solid var(--border);
-
+    border: 1px solid var(--border);
     border-radius: var(--radius);
 
     backdrop-filter: blur(18px);
@@ -218,14 +210,13 @@ ul {
     content: "";
 
     position: absolute;
-
     inset: 0;
 
     background:
         linear-gradient(
             120deg,
             transparent 25%,
-            rgba(255,255,255,.06),
+            rgba(255, 255, 255, .06),
             transparent 75%
         );
 
@@ -245,11 +236,11 @@ ul {
     transform: translateY(-7px);
 
     border-color:
-        rgba(255,47,104,.45);
+        rgba(255, 47, 104, .45);
 
     box-shadow:
-        0 25px 70px rgba(0,0,0,.45),
-        0 0 35px rgba(255,47,104,.08);
+        0 25px 70px rgba(0, 0, 0, .45),
+        0 0 35px rgba(255, 47, 104, .08);
 }
 
 
@@ -293,24 +284,24 @@ ul {
     color: #000;
 
     box-shadow:
-        0 10px 30px rgba(255,47,104,.2);
+        0 10px 30px rgba(255, 47, 104, .2);
 }
 
 .btn-primary:hover {
     background: var(--pink-light);
 
     box-shadow:
-        0 15px 45px rgba(255,47,104,.4);
+        0 15px 45px rgba(255, 47, 104, .4);
 }
 
 .btn-ghost {
     color: #fff;
 
     background:
-        rgba(255,255,255,.035);
+        rgba(255, 255, 255, .035);
 
     border:
-        1px solid rgba(255,255,255,.18);
+        1px solid rgba(255, 255, 255, .18);
 }
 
 .btn-ghost:hover {
@@ -319,7 +310,7 @@ ul {
     border-color: var(--pink);
 
     background:
-        rgba(255,47,104,.05);
+        rgba(255, 47, 104, .05);
 }
 
 .btn-block {
@@ -353,7 +344,7 @@ ul {
 
 .site-header.scrolled {
     background:
-        rgba(5,5,5,.82);
+        rgba(5, 5, 5, .82);
 
     backdrop-filter:
         blur(20px);
@@ -362,7 +353,7 @@ ul {
         blur(20px);
 
     border-color:
-        rgba(255,255,255,.08);
+        rgba(255, 255, 255, .08);
 }
 
 .header-inner {
@@ -377,49 +368,122 @@ ul {
     margin: auto;
 
     display: flex;
-
     align-items: center;
     justify-content: space-between;
 }
 
 
 /* =========================================================
-   LOGO
+   LOGO — circular mark with two independently
+   rotating rings orbiting it, continuously, forever
    ========================================================= */
 
 .logo {
-    width: 125px;
-
     display: flex;
     align-items: center;
+    gap: 13px;
 
     position: relative;
-
     z-index: 20;
 }
 
-.logo img {
-    width: 100%;
+.logo-orbit {
+    position: relative;
 
-    height: auto;
+    width: 54px;
+    height: 54px;
 
-    max-height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    object-fit: contain;
-
-    transition:
-        transform .35s var(--ease),
-        filter .35s ease;
+    flex-shrink: 0;
 }
 
-.logo:hover img {
-    transform: scale(1.04);
+.logo-orbit img {
+    width: 40px;
+    height: 40px;
 
-    filter:
-        drop-shadow(
-            0 0 14px
-            rgba(255,47,104,.28)
-        );
+    border-radius: 50%;
+    object-fit: cover;
+
+    position: relative;
+    z-index: 2;
+
+    border: 2px solid var(--black);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .12);
+
+    transition: transform .35s var(--ease);
+}
+
+.logo:hover .logo-orbit img {
+    transform: scale(1.06);
+}
+
+/* Ring 1 — inner line, solid pink arc, spins clockwise */
+.orbit {
+    position: absolute;
+    inset: 0;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+}
+
+.orbit-one {
+    border: 1.5px solid transparent;
+    border-top-color: var(--pink);
+    border-left-color: var(--pink);
+
+    filter: drop-shadow(0 0 4px rgba(255, 47, 104, .55));
+
+    animation: orbitSpin 3.2s linear infinite;
+}
+
+/* Ring 2 — outer line, offset further out, spins counter-clockwise, slower */
+.orbit-two {
+    inset: -7px;
+
+    border: 1px dashed rgba(255, 255, 255, .55);
+
+    animation: orbitSpin 6.5s linear infinite reverse;
+}
+
+@keyframes orbitSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.logo-text {
+    display: flex;
+    align-items: baseline;
+
+    font-family: var(--display);
+    font-size: 1rem;
+
+    letter-spacing: -.02em;
+}
+
+.logo-keyz {
+    color: var(--white);
+    font-weight: 700;
+}
+
+.logo-ink {
+    color: var(--pink);
+    font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .orbit-one,
+    .orbit-two {
+        animation: none;
+    }
 }
 
 
@@ -429,7 +493,6 @@ ul {
 
 .main-nav {
     display: flex;
-
     align-items: center;
 
     gap: 27px;
@@ -439,10 +502,9 @@ ul {
     position: relative;
 
     color:
-        rgba(255,255,255,.72);
+        rgba(255, 255, 255, .72);
 
     font-size: .76rem;
-
     font-weight: 700;
 
     transition:
@@ -494,7 +556,7 @@ ul {
 .nav-cta:hover {
     box-shadow:
         0 10px 30px
-        rgba(255,47,104,.35);
+        rgba(255, 47, 104, .35);
 }
 
 
@@ -511,10 +573,10 @@ ul {
     border-radius: 50%;
 
     border:
-        1px solid rgba(255,255,255,.1);
+        1px solid rgba(255, 255, 255, .1);
 
     background:
-        rgba(255,255,255,.04);
+        rgba(255, 255, 255, .04);
 
     align-items: center;
     justify-content: center;
@@ -612,14 +674,15 @@ ul {
     background:
         linear-gradient(
             90deg,
-            rgba(0,0,0,.93),
-            rgba(0,0,0,.68),
-            rgba(0,0,0,.42)
+            rgba(0, 0, 0, .93),
+            rgba(0, 0, 0, .68),
+            rgba(0, 0, 0, .42)
         ),
+
         linear-gradient(
             180deg,
-            rgba(0,0,0,.55),
-            rgba(0,0,0,.85)
+            rgba(0, 0, 0, .55),
+            rgba(0, 0, 0, .85)
         );
 }
 
@@ -642,7 +705,6 @@ ul {
 
 .hero-eyebrow {
     display: flex;
-
     align-items: center;
 
     gap: 12px;
@@ -650,11 +712,9 @@ ul {
     color: var(--pink);
 
     font-size: .73rem;
-
     font-weight: 800;
 
     text-transform: uppercase;
-
     letter-spacing: .17em;
 
     margin-bottom: 20px;
@@ -699,7 +759,7 @@ ul {
     margin-top: 25px;
 
     color:
-        rgba(255,255,255,.68);
+        rgba(255, 255, 255, .68);
 
     font-size: .98rem;
 
@@ -765,7 +825,7 @@ ul {
     top: -150px;
 
     background:
-        rgba(255,47,104,.2);
+        rgba(255, 47, 104, .2);
 
     animation:
         floatGlow 9s ease-in-out infinite;
@@ -779,22 +839,22 @@ ul {
     bottom: -150px;
 
     background:
-        rgba(255,47,104,.13);
+        rgba(255, 47, 104, .13);
 
     animation:
         floatGlow 11s ease-in-out infinite reverse;
 }
 
 @keyframes floatGlow {
-    0%,100% {
+    0%, 100% {
         transform:
-            translate(0,0)
+            translate(0, 0)
             scale(1);
     }
 
     50% {
         transform:
-            translate(-30px,25px)
+            translate(-30px, 25px)
             scale(1.1);
     }
 }
@@ -814,7 +874,7 @@ ul {
     height: 42px;
 
     border:
-        1px solid rgba(255,255,255,.3);
+        1px solid rgba(255, 255, 255, .3);
 
     border-radius: 999px;
 
@@ -852,18 +912,18 @@ ul {
         opacity: 0;
 
         transform:
-            translate(-50%,0);
+            translate(-50%, 0);
     }
 
     30% {
         opacity: 1;
     }
 
-    80%,100% {
+    80%, 100% {
         opacity: 0;
 
         transform:
-            translate(-50%,20px);
+            translate(-50%, 20px);
     }
 }
 
@@ -878,7 +938,7 @@ ul {
     background:
         radial-gradient(
             circle at 5% 50%,
-            rgba(255,47,104,.055),
+            rgba(255, 47, 104, .055),
             transparent 30%
         );
 }
@@ -898,6 +958,7 @@ ul {
 
 /* =========================================================
    ABOUT IMAGE
+   SIMPLE DOUBLE 1PX BORDER
    ========================================================= */
 
 .about-image {
@@ -912,16 +973,23 @@ ul {
 
     overflow: hidden;
 
-    border-radius: 24px;
-
+    /* First 1px line */
     border:
-        1px solid rgba(255,255,255,.1);
+        1px solid rgba(255, 255, 255, .85);
+
+    /* Second 1px line */
+    outline:
+        1px solid var(--pink);
+
+    outline-offset: 6px;
+
+    border-radius: 20px;
 
     background:
         var(--black-3);
 
-    box-shadow:
-        0 30px 90px rgba(0,0,0,.5);
+    /* No heavy glow */
+    box-shadow: none;
 }
 
 .about-image::after {
@@ -935,7 +1003,7 @@ ul {
         linear-gradient(
             180deg,
             transparent 45%,
-            rgba(0,0,0,.7)
+            rgba(0, 0, 0, .7)
         );
 
     pointer-events: none;
@@ -948,16 +1016,12 @@ ul {
     object-fit: cover;
 
     transition:
-        transform 1s var(--ease),
-        filter .7s ease;
+        transform .7s var(--ease);
 }
 
 .about-image:hover img {
-    transform: scale(1.06);
-
-    filter:
-        brightness(1.04)
-        contrast(1.05);
+    transform:
+        scale(1.03);
 }
 
 .about-image-badge {
@@ -971,10 +1035,10 @@ ul {
     padding: 13px 17px;
 
     background:
-        rgba(5,5,5,.72);
+        rgba(5, 5, 5, .72);
 
     border:
-        1px solid rgba(255,255,255,.13);
+        1px solid rgba(255, 255, 255, .13);
 
     border-radius: 12px;
 
@@ -986,10 +1050,9 @@ ul {
     display: block;
 
     color:
-        rgba(255,255,255,.6);
+        rgba(255, 255, 255, .6);
 
     font-size: .55rem;
-
     font-weight: 800;
 
     letter-spacing: .18em;
@@ -1014,7 +1077,7 @@ ul {
     max-width: 57ch;
 
     color:
-        rgba(255,255,255,.64);
+        rgba(255, 255, 255, .64);
 
     font-size: .96rem;
 
@@ -1038,12 +1101,12 @@ ul {
 
     text-shadow:
         0 0 15px
-        rgba(255,47,104,.4);
+        rgba(255, 47, 104, .4);
 }
 
 .rating-block p {
     color:
-        rgba(255,255,255,.58);
+        rgba(255, 255, 255, .58);
 
     font-size: .83rem;
 }
@@ -1080,7 +1143,7 @@ ul {
 
 .about-location p {
     color:
-        rgba(255,255,255,.55);
+        rgba(255, 255, 255, .55);
 
     font-size: .8rem;
 
@@ -1107,7 +1170,7 @@ ul {
     display: grid;
 
     grid-template-columns:
-        repeat(2,1fr);
+        repeat(2, 1fr);
 
     gap: 22px;
 
@@ -1135,7 +1198,7 @@ ul {
         var(--pink-soft);
 
     border:
-        1px solid rgba(255,47,104,.18);
+        1px solid rgba(255, 47, 104, .18);
 
     color: var(--pink);
 
@@ -1152,7 +1215,7 @@ ul {
         scale(1.08);
 
     background:
-        rgba(255,47,104,.17);
+        rgba(255, 47, 104, .17);
 }
 
 .service-card h3 {
@@ -1170,10 +1233,10 @@ ul {
         10px 0 10px 17px;
 
     border-top:
-        1px solid rgba(255,255,255,.07);
+        1px solid rgba(255, 255, 255, .07);
 
     color:
-        rgba(255,255,255,.58);
+        rgba(255, 255, 255, .58);
 
     font-size: .82rem;
 
@@ -1226,7 +1289,7 @@ ul {
 
 .pricing-subtitle {
     color:
-        rgba(255,255,255,.55);
+        rgba(255, 255, 255, .55);
 
     font-size: .9rem;
 
@@ -1235,7 +1298,7 @@ ul {
 
 .flash-sheet {
     border-top:
-        1px solid rgba(255,255,255,.1);
+        1px solid rgba(255, 255, 255, .1);
 }
 
 .flash-row {
@@ -1248,7 +1311,7 @@ ul {
     gap: 18px;
 
     border-bottom:
-        1px solid rgba(255,255,255,.1);
+        1px solid rgba(255, 255, 255, .1);
 
     transition:
         padding-left .35s var(--ease),
@@ -1261,7 +1324,7 @@ ul {
     background:
         linear-gradient(
             90deg,
-            rgba(255,47,104,.04),
+            rgba(255, 47, 104, .04),
             transparent
         );
 }
@@ -1290,7 +1353,7 @@ ul {
     flex: 1;
 
     border-bottom:
-        1px dotted rgba(255,255,255,.2);
+        1px dotted rgba(255, 255, 255, .2);
 }
 
 .flash-price {
@@ -1313,7 +1376,6 @@ ul {
     margin-top: 30px;
 
     font-size: .83rem;
-
     font-weight: 800;
 
     transition:
@@ -1341,14 +1403,14 @@ ul {
     display: grid;
 
     grid-template-columns:
-        repeat(4,1fr);
+        repeat(4, 1fr);
 
     gap: 1px;
 
     overflow: hidden;
 
     border:
-        1px solid rgba(255,255,255,.1);
+        1px solid rgba(255, 255, 255, .1);
 
     border-radius: var(--radius);
 }
@@ -1365,7 +1427,7 @@ ul {
     justify-content: space-between;
 
     background:
-        rgba(255,255,255,.025);
+        rgba(255, 255, 255, .025);
 
     transition:
         background .3s ease,
@@ -1374,7 +1436,7 @@ ul {
 
 .piercing-item:hover {
     background:
-        rgba(255,47,104,.08);
+        rgba(255, 47, 104, .08);
 
     transform:
         scale(1.025);
@@ -1384,7 +1446,7 @@ ul {
 
 .piercing-item span {
     color:
-        rgba(255,255,255,.55);
+        rgba(255, 255, 255, .55);
 
     font-size: .76rem;
 }
@@ -1407,7 +1469,7 @@ ul {
     margin-top: 13px;
 
     color:
-        rgba(255,255,255,.5);
+        rgba(255, 255, 255, .5);
 
     font-size: .8rem;
 }
@@ -1445,7 +1507,7 @@ ul {
     border-radius: 13px;
 
     border:
-        1px solid rgba(255,255,255,.07);
+        1px solid rgba(255, 255, 255, .07);
 
     cursor: pointer;
 }
@@ -1469,7 +1531,7 @@ ul {
         linear-gradient(
             180deg,
             transparent 45%,
-            rgba(0,0,0,.75)
+            rgba(0, 0, 0, .75)
         );
 
     opacity: 0;
@@ -1509,7 +1571,7 @@ ul {
     justify-content: center;
 
     background:
-        rgba(0,0,0,.96);
+        rgba(0, 0, 0, .96);
 
     backdrop-filter:
         blur(12px);
@@ -1536,7 +1598,6 @@ ul {
 
 .lightbox img {
     max-width: 88vw;
-
     max-height: 84vh;
 
     object-fit: contain;
@@ -1580,10 +1641,10 @@ ul {
     color: white;
 
     background:
-        rgba(255,255,255,.07);
+        rgba(255, 255, 255, .07);
 
     border:
-        1px solid rgba(255,255,255,.1);
+        1px solid rgba(255, 255, 255, .1);
 
     transition:
         background .3s ease,
@@ -1640,9 +1701,10 @@ ul {
     background:
         radial-gradient(
             circle at 10% 50%,
-            rgba(255,47,104,.06),
+            rgba(255, 47, 104, .06),
             transparent 30%
         ),
+
         var(--black-2);
 }
 
@@ -1660,7 +1722,7 @@ ul {
 
 .booking-text {
     color:
-        rgba(255,255,255,.6);
+        rgba(255, 255, 255, .6);
 
     font-size: .9rem;
 
@@ -1697,7 +1759,7 @@ ul {
 
 .deposit-note p {
     color:
-        rgba(255,255,255,.5);
+        rgba(255, 255, 255, .5);
 
     font-size: .72rem;
 }
@@ -1727,7 +1789,7 @@ ul {
 
 .form-row label {
     color:
-        rgba(255,255,255,.68);
+        rgba(255, 255, 255, .68);
 
     font-size: .7rem;
 
@@ -1742,12 +1804,12 @@ ul {
     padding: 13px 14px;
 
     background:
-        rgba(255,255,255,.035);
+        rgba(255, 255, 255, .035);
 
     color: white;
 
     border:
-        1px solid rgba(255,255,255,.1);
+        1px solid rgba(255, 255, 255, .1);
 
     border-radius: 11px;
 
@@ -1762,7 +1824,7 @@ ul {
 .form-row input::placeholder,
 .form-row textarea::placeholder {
     color:
-        rgba(255,255,255,.25);
+        rgba(255, 255, 255, .25);
 }
 
 .form-row input:focus,
@@ -1771,11 +1833,11 @@ ul {
     border-color: var(--pink);
 
     background:
-        rgba(255,47,104,.04);
+        rgba(255, 47, 104, .04);
 
     box-shadow:
         0 0 0 4px
-        rgba(255,47,104,.07);
+        rgba(255, 47, 104, .07);
 }
 
 .form-row textarea {
@@ -1870,7 +1932,7 @@ ul {
     gap: 12px;
 
     color:
-        rgba(255,255,255,.58);
+        rgba(255, 255, 255, .58);
 
     font-size: .83rem;
 }
@@ -1914,13 +1976,13 @@ ul {
     border-radius: 50%;
 
     background:
-        rgba(255,255,255,.035);
+        rgba(255, 255, 255, .035);
 
     border:
-        1px solid rgba(255,255,255,.12);
+        1px solid rgba(255, 255, 255, .12);
 
     color:
-        rgba(255,255,255,.7);
+        rgba(255, 255, 255, .7);
 
     font-size: 1rem;
 
@@ -1941,11 +2003,11 @@ ul {
     border-color: var(--pink);
 
     background:
-        rgba(255,47,104,.08);
+        rgba(255, 47, 104, .08);
 
     box-shadow:
         0 10px 30px
-        rgba(255,47,104,.15);
+        rgba(255, 47, 104, .15);
 }
 
 
@@ -1985,7 +2047,7 @@ ul {
     padding: 13px 0;
 
     border-top:
-        1px solid rgba(255,255,255,.08);
+        1px solid rgba(255, 255, 255, .08);
 
     font-size: .78rem;
 }
@@ -1996,7 +2058,7 @@ ul {
 
 .hours-row span {
     color:
-        rgba(255,255,255,.52);
+        rgba(255, 255, 255, .52);
 }
 
 .hours-row b {
@@ -2014,13 +2076,14 @@ ul {
     background:
         radial-gradient(
             circle at 10% 0%,
-            rgba(255,47,104,.09),
+            rgba(255, 47, 104, .09),
             transparent 30%
         ),
+
         #040404;
 
     border-top:
-        1px solid rgba(255,255,255,.08);
+        1px solid rgba(255, 255, 255, .08);
 
     overflow: hidden;
 }
@@ -2046,7 +2109,7 @@ ul {
 
     box-shadow:
         0 0 15px
-        rgba(255,47,104,.4);
+        rgba(255, 47, 104, .4);
 }
 
 .footer-inner {
@@ -2086,15 +2149,21 @@ ul {
 .footer-logo {
     display: inline-flex;
 
-    width: 120px;
+    width: 56px;
+    height: 56px;
+
+    border-radius: 50%;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 255, 255, .18);
 }
 
 .footer-logo img {
     width: 100%;
+    height: 100%;
 
-    max-height: 55px;
-
-    object-fit: contain;
+    object-fit: cover;
 
     transition:
         transform .35s var(--ease),
@@ -2102,12 +2171,12 @@ ul {
 }
 
 .footer-logo:hover img {
-    transform: scale(1.04);
+    transform: scale(1.08);
 
     filter:
         drop-shadow(
             0 0 14px
-            rgba(255,47,104,.3)
+            rgba(255, 47, 104, .3)
         );
 }
 
@@ -2127,7 +2196,7 @@ ul {
     margin-top: 15px;
 
     color:
-        rgba(255,255,255,.48);
+        rgba(255, 255, 255, .48);
 
     font-size: .77rem;
 
@@ -2171,7 +2240,7 @@ ul {
 
     box-shadow:
         0 0 10px
-        rgba(255,47,104,.4);
+        rgba(255, 47, 104, .4);
 }
 
 .footer-column a,
@@ -2179,7 +2248,7 @@ ul {
     width: fit-content;
 
     color:
-        rgba(255,255,255,.47);
+        rgba(255, 255, 255, .47);
 
     font-size: .75rem;
 
@@ -2247,13 +2316,13 @@ ul {
     border-radius: 50%;
 
     background:
-        rgba(255,255,255,.035);
+        rgba(255, 255, 255, .035);
 
     border:
-        1px solid rgba(255,255,255,.1);
+        1px solid rgba(255, 255, 255, .1);
 
     color:
-        rgba(255,255,255,.62);
+        rgba(255, 255, 255, .62);
 
     transition:
         transform .3s var(--ease),
@@ -2271,7 +2340,7 @@ ul {
     border-color: var(--pink);
 
     background:
-        rgba(255,47,104,.08);
+        rgba(255, 47, 104, .08);
 }
 
 
@@ -2292,7 +2361,7 @@ ul {
         22px 0 25px;
 
     border-top:
-        1px solid rgba(255,255,255,.07);
+        1px solid rgba(255, 255, 255, .07);
 
     display: flex;
 
@@ -2305,7 +2374,7 @@ ul {
 
 .footer-bottom p {
     color:
-        rgba(255,255,255,.32);
+        rgba(255, 255, 255, .32);
 
     font-size: .66rem;
 }
@@ -2320,7 +2389,7 @@ ul {
 
 .footer-bottom-links a {
     color:
-        rgba(255,255,255,.4);
+        rgba(255, 255, 255, .4);
 
     font-size: .66rem;
 
@@ -2367,7 +2436,7 @@ ul {
 
     box-shadow:
         0 10px 35px
-        rgba(255,47,104,.3);
+        rgba(255, 47, 104, .3);
 
     animation:
         whatsappPulse 2.5s ease-in-out infinite;
@@ -2383,16 +2452,16 @@ ul {
 }
 
 @keyframes whatsappPulse {
-    0%,100% {
+    0%, 100% {
         box-shadow:
             0 10px 35px
-            rgba(255,47,104,.28);
+            rgba(255, 47, 104, .28);
     }
 
     50% {
         box-shadow:
             0 10px 48px
-            rgba(255,47,104,.55);
+            rgba(255, 47, 104, .55);
     }
 }
 
@@ -2421,7 +2490,7 @@ ul {
 
     .piercing-grid {
         grid-template-columns:
-            repeat(3,1fr);
+            repeat(3, 1fr);
     }
 
     .booking-grid,
@@ -2433,7 +2502,7 @@ ul {
 
     .footer-inner {
         grid-template-columns:
-            repeat(2,1fr);
+            repeat(2, 1fr);
     }
 }
 
@@ -2474,13 +2543,13 @@ ul {
         gap: 24px;
 
         background:
-            rgba(5,5,5,.97);
+            rgba(5, 5, 5, .97);
 
         backdrop-filter:
             blur(25px);
 
         border-left:
-            1px solid rgba(255,255,255,.08);
+            1px solid rgba(255, 255, 255, .08);
 
         transform:
             translateX(100%);
@@ -2520,16 +2589,24 @@ ul {
             calc(100% - 34px);
     }
 
-    .logo {
-        width: 105px;
+    .logo-orbit {
+        width: 46px;
+        height: 46px;
     }
 
-    .logo img {
-        max-height: 45px;
+    .logo-orbit img {
+        width: 34px;
+        height: 34px;
+    }
+
+    .logo-text {
+        font-size: .85rem;
     }
 
 
-    /* Hero */
+    /* =====================================================
+       HERO
+       ===================================================== */
 
     .hero-content {
         padding:
@@ -2558,7 +2635,9 @@ ul {
     }
 
 
-    /* About */
+    /* =====================================================
+       ABOUT
+       ===================================================== */
 
     .about-grid {
         grid-template-columns: 1fr;
@@ -2572,6 +2651,8 @@ ul {
         height: 420px;
 
         border-radius: 18px;
+
+        outline-offset: 5px;
     }
 
     .rating-block {
@@ -2583,7 +2664,9 @@ ul {
     }
 
 
-    /* Services */
+    /* =====================================================
+       SERVICES
+       ===================================================== */
 
     .services-grid {
         grid-template-columns: 1fr;
@@ -2596,7 +2679,9 @@ ul {
     }
 
 
-    /* Tattoo prices */
+    /* =====================================================
+       TATTOO PRICES
+       ===================================================== */
 
     .flash-row {
         flex-wrap: wrap;
@@ -2617,15 +2702,19 @@ ul {
     }
 
 
-    /* Piercing */
+    /* =====================================================
+       PIERCING
+       ===================================================== */
 
     .piercing-grid {
         grid-template-columns:
-            repeat(2,1fr);
+            repeat(2, 1fr);
     }
 
 
-    /* Gallery */
+    /* =====================================================
+       GALLERY
+       ===================================================== */
 
     .masonry {
         columns:
@@ -2641,7 +2730,9 @@ ul {
     }
 
 
-    /* Form */
+    /* =====================================================
+       FORM
+       ===================================================== */
 
     .booking-form {
         padding: 22px;
@@ -2652,7 +2743,9 @@ ul {
     }
 
 
-    /* Contact */
+    /* =====================================================
+       CONTACT
+       ===================================================== */
 
     .contact-actions {
         flex-direction: column;
@@ -2663,7 +2756,9 @@ ul {
     }
 
 
-    /* Footer */
+    /* =====================================================
+       FOOTER
+       ===================================================== */
 
     .footer-inner {
         width:
@@ -2695,7 +2790,9 @@ ul {
     }
 
 
-    /* WhatsApp */
+    /* =====================================================
+       WHATSAPP
+       ===================================================== */
 
     .whatsapp-float {
         width: 52px;
@@ -2723,6 +2820,8 @@ ul {
 
     .about-image {
         height: 370px;
+
+        outline-offset: 4px;
     }
 
     .piercing-item {

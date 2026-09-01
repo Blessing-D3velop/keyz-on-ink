@@ -8,17 +8,13 @@
    PayFast needs a real merchant account. To get merchant_id / merchant_key:
    1. Sign up at https://www.payfast.co.za
    2. Go to Settings → Integration to find your Merchant ID and Merchant Key
-   3. Paste them below and set PAYFAST_MODE to "live"
+   3. Paste them below and set mode to "live"
 
-   IMPORTANT LIMITS OF A FRONTEND-ONLY SITE:
-   - This sends the customer to PayFast to pay the R200 deposit, but this
-     site has no server, so it CANNOT automatically confirm a payment
-     succeeded (that requires PayFast's "ITN" webhook hitting a backend).
-   - Treat PayFast + the WhatsApp message together as your confirmation:
-     the WhatsApp message tells you a booking came in, and you confirm the
-     R200 landed by checking your PayFast dashboard.
-   - return_url / cancel_url below must be real, published https:// URLs
-     once this site is hosted (PayFast will not accept localhost).
+   Bookings are now saved to the backend (server.py) first — that's what
+   powers the admin dashboard at /admin. The PayFast ITN webhook
+   (server.py's /api/payfast/notify) then marks a booking "paid"
+   automatically once a deposit lands, once this is hosted with a real
+   public HTTPS URL. Until then, mark deposits "Paid" manually in /admin.
 ============================================ */
 const PAYFAST_CONFIG = {
   mode: "sandbox", // change to "live" once real credentials are in and site is hosted
@@ -27,7 +23,7 @@ const PAYFAST_CONFIG = {
   deposit_amount: "200.00",
   return_url: window.location.origin + window.location.pathname + "?payment=success",
   cancel_url: window.location.origin + window.location.pathname + "?payment=cancelled",
-  notify_url: "" // requires a backend endpoint — leave blank on a frontend-only site
+  notify_url: window.location.origin + "/api/payfast/notify"
 };
 
 const WHATSAPP_NUMBER = "27710995517";
@@ -74,26 +70,11 @@ function initHamburger() {
 
 /* ---------- Gallery (placeholder tattoo images) ---------- */
 const GALLERY_IMAGES = [
-  "images/g1.jpeg",
-  "images/g2.jpeg",
-  "images/g3.jpeg",
-  "images/g4.jpeg",
-  "images/g5.jpeg",
-  "images/g6.jpeg",
-  "images/g7.jpeg",
-  "images/g8.jpeg",
-  "images/g9.jpeg",
-  "images/g10.jpeg",
-  "images/g11.jpeg",
-  "images/g12.jpeg",
-  "images/g13.jpeg",
-  "images/g14.jpeg",
-  "images/g15.jpeg",
-  "images/g16.jpeg",
-  
+  "images/g1.jpeg", "images/g2.jpeg", "images/g3.jpeg", "images/g4.jpeg",
+  "images/g5.jpeg", "images/g6.jpeg", "images/g7.jpeg", "images/g8.jpeg",
+  "images/g9.jpeg", "images/g10.jpeg", "images/g11.jpeg", "images/g12.jpeg",
+  "images/g13.jpeg", "images/g14.jpeg", "images/g15.jpeg", "images/g16.jpeg",
 ];
-
-
 
 let galleryIndex = 0;
 
@@ -154,32 +135,49 @@ function setMinDate() {
 function initBookingForm() {
   const form = document.getElementById("bookingForm");
   const whatsappOnlyBtn = document.getElementById("whatsappOnlyBtn");
+  const submitBtn = document.getElementById("submitBtn");
+  const formNote = document.getElementById("formNote");
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
     const data = getFormData();
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving booking...`;
+
+    let bookingId = null;
+    try {
+      bookingId = await saveBookingToServer(data);
+    } catch (err) {
+      console.warn("Could not reach the booking server, continuing without it:", err);
+    }
+
     sendWhatsAppMessage(data);
-    // Give the WhatsApp tab a moment to open before redirecting this tab to PayFast
-    setTimeout(() => redirectToPayFast(data), 600);
+    setTimeout(() => redirectToPayFast(data, bookingId), 600);
   });
 
-  whatsappOnlyBtn.addEventListener("click", () => {
+  whatsappOnlyBtn.addEventListener("click", async () => {
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
     const data = getFormData();
+    try {
+      await saveBookingToServer(data);
+    } catch (err) {
+      console.warn("Could not reach the booking server, continuing without it:", err);
+    }
     sendWhatsAppMessage(data, true);
   });
 }
 
 function getFormData() {
   return {
-    name: document.getElementById("fullName").value.trim(),
+    fullName: document.getElementById("fullName").value.trim(),
     phone: document.getElementById("phone").value.trim(),
     email: document.getElementById("email").value.trim(),
     service: document.getElementById("serviceType").value,
@@ -189,11 +187,24 @@ function getFormData() {
   };
 }
 
+/* Saves the booking to server.py so it shows up in /admin.
+   Returns the new booking's id (used to reconcile PayFast payments later). */
+async function saveBookingToServer(data) {
+  const res = await fetch("/api/bookings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Booking save failed: " + res.status);
+  const result = await res.json();
+  return result.id;
+}
+
 function sendWhatsAppMessage(data, sameTab) {
   const message =
 `Hello KEYZ INK, I would like to book an appointment.
 
-Name: ${data.name}
+Name: ${data.fullName}
 Service: ${data.service}
 Date: ${data.date}
 Time: ${data.time}
@@ -208,11 +219,15 @@ Description: ${data.description}`;
   }
 }
 
-function redirectToPayFast(data) {
+function redirectToPayFast(data, bookingId) {
   const cfg = PAYFAST_CONFIG;
   const baseUrl = cfg.mode === "live"
     ? "https://www.payfast.co.za/eng/process"
     : "https://sandbox.payfast.co.za/eng/process";
+
+  // m_payment_id encodes the booking id so server.py's ITN handler can
+  // find and mark the right booking as paid: KEYZINK-<bookingId>-<timestamp>
+  const mPaymentId = `KEYZINK-${bookingId ?? "0"}-${Date.now()}`;
 
   const payFastForm = document.createElement("form");
   payFastForm.method = "POST";
@@ -224,9 +239,9 @@ function redirectToPayFast(data) {
     return_url: cfg.return_url,
     cancel_url: cfg.cancel_url,
     notify_url: cfg.notify_url,
-    name_first: data.name,
+    name_first: data.fullName,
     email_address: data.email,
-    m_payment_id: `KEYZINK-${Date.now()}`,
+    m_payment_id: mPaymentId,
     amount: cfg.deposit_amount,
     item_name: "KEYZ INK — Booking Deposit",
     item_description: `${data.service} deposit for ${data.date} ${data.time}`,
