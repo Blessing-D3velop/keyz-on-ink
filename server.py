@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-KEYZ INK — backend server
-==========================
+KEYZ INK — Fullstack Backend Server
+===================================
 
 Pure Python standard library backend.
 
@@ -13,6 +13,7 @@ Features:
 - Admin dashboard API
 - Booking management
 - PayFast ITN webhook receiver
+- PayFast payment verification
 - Secure static-file serving
 
 RUN LOCALLY:
@@ -36,6 +37,7 @@ import hashlib
 import secrets
 import urllib.parse
 import urllib.request
+
 from datetime import datetime, timedelta, timezone
 from http import cookies
 
@@ -44,10 +46,15 @@ from http import cookies
 # CONFIG
 # ==========================================================================
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
 
 PUBLIC_DIR = os.path.abspath(
-    os.path.join(BASE_DIR, "public")
+    os.path.join(
+        BASE_DIR,
+        "public"
+    )
 )
 
 DB_PATH = os.path.join(
@@ -57,12 +64,22 @@ DB_PATH = os.path.join(
 )
 
 PORT = int(
-    os.environ.get("PORT", 8000)
+    os.environ.get(
+        "PORT",
+        8000
+    )
 )
 
-SESSION_COOKIE_NAME = "keyzink_admin_session"
+SESSION_COOKIE_NAME = (
+    "keyzink_admin_session"
+)
 
 SESSION_LIFETIME_HOURS = 12
+
+
+# ==========================================================================
+# ADMIN CONFIG
+# ==========================================================================
 
 DEFAULT_ADMIN_USERNAME = os.environ.get(
     "ADMIN_USERNAME",
@@ -74,21 +91,92 @@ DEFAULT_ADMIN_PASSWORD = os.environ.get(
     "change-me-now"
 )
 
+
+# ==========================================================================
+# BOOKING CONFIG
+# ==========================================================================
+
 DEPOSIT_AMOUNT = 200.00
 
 
 # ==========================================================================
-# PAYFAST
+# PAYFAST CONFIG
 # ==========================================================================
+
+# IMPORTANT:
+# These should be environment variables when going live.
+#
+# Windows PowerShell example:
+#
+# $env:PAYFAST_MERCHANT_ID="14413558"
+# $env:PAYFAST_MERCHANT_KEY="YOUR_NEW_MERCHANT_KEY"
+# $env:PAYFAST_PASSPHRASE="YOUR_PASSPHRASE"
+#
+# DO NOT put these values into GitHub.
+
+PAYFAST_MERCHANT_ID = os.environ.get(
+    "PAYFAST_MERCHANT_ID",
+    "14413558"
+).strip()
+
+PAYFAST_MERCHANT_KEY = os.environ.get(
+    "PAYFAST_MERCHANT_KEY",
+    " yx20no5w4a29h"
+).strip()
 
 PAYFAST_PASSPHRASE = os.environ.get(
     "PAYFAST_PASSPHRASE",
     ""
 )
 
-PAYFAST_VALIDATE_URL = (
-    "https://sandbox.payfast.co.za/eng/query/validate"
-)
+
+# ==========================================================================
+# PAYFAST MODE
+# ==========================================================================
+
+PAYFAST_MODE = os.environ.get(
+    "PAYFAST_MODE",
+    "live"
+).strip().lower()
+
+
+if PAYFAST_MODE == "live":
+
+    PAYFAST_PROCESS_URL = (
+        "https://www.payfast.co.za/eng/process"
+    )
+
+    PAYFAST_VALIDATE_URL = (
+        "https://www.payfast.co.za/eng/query/validate"
+    )
+
+else:
+
+    PAYFAST_PROCESS_URL = (
+        "https://sandbox.payfast.co.za/eng/process"
+    )
+
+    PAYFAST_VALIDATE_URL = (
+        "https://sandbox.payfast.co.za/eng/query/validate"
+    )
+
+
+# ==========================================================================
+# PUBLIC WEBSITE URL
+# ==========================================================================
+
+# When hosted, set this to the actual public HTTPS website.
+#
+# Example:
+#
+# PUBLIC_BASE_URL=https://keyzink.co.za
+#
+# Locally, it automatically uses localhost.
+
+PUBLIC_BASE_URL = os.environ.get(
+    "PUBLIC_BASE_URL",
+    ""
+).strip().rstrip("/")
 
 
 # ==========================================================================
@@ -96,16 +184,15 @@ PAYFAST_VALIDATE_URL = (
 # ==========================================================================
 
 def get_db():
-    """
-    Open the SQLite database.
-    """
 
     os.makedirs(
         os.path.dirname(DB_PATH),
         exist_ok=True
     )
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(
+        DB_PATH
+    )
 
     conn.row_factory = sqlite3.Row
 
@@ -117,9 +204,6 @@ def get_db():
 
 
 def init_db():
-    """
-    Create database tables and the first admin account.
-    """
 
     conn = get_db()
 
@@ -183,9 +267,18 @@ def init_db():
 
     conn.commit()
 
+
+    # --------------------------------------------------------------
+    # Create default admin only if there are no admins.
+    # --------------------------------------------------------------
+
     row = conn.execute(
-        "SELECT COUNT(*) AS c FROM admin_users"
+        """
+        SELECT COUNT(*) AS c
+        FROM admin_users
+        """
     ).fetchone()
+
 
     if row["c"] == 0:
 
@@ -195,21 +288,30 @@ def init_db():
             DEFAULT_ADMIN_PASSWORD
         )
 
+
         if DEFAULT_ADMIN_PASSWORD == "change-me-now":
 
             print("=" * 70)
 
             print(
-                "⚠️  WARNING: using the DEFAULT admin login "
-                "(admin / change-me-now)"
+                "WARNING: using the default admin login."
             )
 
             print(
-                "    Set ADMIN_USERNAME and ADMIN_PASSWORD "
+                "Username: admin"
+            )
+
+            print(
+                "Password: change-me-now"
+            )
+
+            print(
+                "Set ADMIN_USERNAME and ADMIN_PASSWORD "
                 "before going live."
             )
 
             print("=" * 70)
+
 
     conn.close()
 
@@ -218,10 +320,17 @@ def init_db():
 # PASSWORDS
 # ==========================================================================
 
-def hash_password(password, salt=None):
+def hash_password(
+    password,
+    salt=None
+):
 
     if salt is None:
-        salt = secrets.token_hex(16)
+
+        salt = secrets.token_hex(
+            16
+        )
+
 
     pw_hash = hashlib.pbkdf2_hmac(
         "sha256",
@@ -230,12 +339,20 @@ def hash_password(password, salt=None):
         200_000
     ).hex()
 
+
     return pw_hash, salt
 
 
-def create_admin_user(conn, username, password):
+def create_admin_user(
+    conn,
+    username,
+    password
+):
 
-    pw_hash, salt = hash_password(password)
+    pw_hash, salt = hash_password(
+        password
+    )
+
 
     conn.execute(
         """
@@ -252,16 +369,23 @@ def create_admin_user(conn, username, password):
             username,
             pw_hash,
             salt,
-            datetime.now(timezone.utc).isoformat()
+            datetime.now(
+                timezone.utc
+            ).isoformat()
         )
     )
+
 
     conn.commit()
 
 
-def verify_admin_login(username, password):
+def verify_admin_login(
+    username,
+    password
+):
 
     conn = get_db()
+
 
     row = conn.execute(
         """
@@ -272,15 +396,19 @@ def verify_admin_login(username, password):
         (username,)
     ).fetchone()
 
+
     conn.close()
+
 
     if not row:
         return False
+
 
     check_hash, _ = hash_password(
         password,
         row["salt"]
     )
+
 
     return hmac.compare_digest(
         check_hash,
@@ -296,13 +424,24 @@ def create_session(username):
 
     conn = get_db()
 
-    token = secrets.token_urlsafe(32)
 
-    now = datetime.now(timezone.utc)
-
-    expires = now + timedelta(
-        hours=SESSION_LIFETIME_HOURS
+    token = secrets.token_urlsafe(
+        32
     )
+
+
+    now = datetime.now(
+        timezone.utc
+    )
+
+
+    expires = (
+        now
+        + timedelta(
+            hours=SESSION_LIFETIME_HOURS
+        )
+    )
+
 
     conn.execute(
         """
@@ -323,9 +462,11 @@ def create_session(username):
         )
     )
 
+
     conn.commit()
 
     conn.close()
+
 
     return token, expires
 
@@ -335,7 +476,9 @@ def get_session(token):
     if not token:
         return None
 
+
     conn = get_db()
+
 
     row = conn.execute(
         """
@@ -346,10 +489,13 @@ def get_session(token):
         (token,)
     ).fetchone()
 
+
     conn.close()
+
 
     if not row:
         return None
+
 
     try:
 
@@ -361,11 +507,17 @@ def get_session(token):
 
         return None
 
-    if expires_at < datetime.now(timezone.utc):
 
-        delete_session(token)
+    if expires_at < datetime.now(
+        timezone.utc
+    ):
+
+        delete_session(
+            token
+        )
 
         return None
+
 
     return row
 
@@ -375,12 +527,18 @@ def delete_session(token):
     if not token:
         return
 
+
     conn = get_db()
 
+
     conn.execute(
-        "DELETE FROM sessions WHERE token = ?",
+        """
+        DELETE FROM sessions
+        WHERE token = ?
+        """,
         (token,)
     )
+
 
     conn.commit()
 
@@ -406,6 +564,7 @@ def create_booking(data):
 
     conn = get_db()
 
+
     cur = conn.execute(
         """
         INSERT INTO bookings
@@ -425,7 +584,9 @@ def create_booking(data):
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'new')
         """,
         (
-            datetime.now(timezone.utc).isoformat(),
+            datetime.now(
+                timezone.utc
+            ).isoformat(),
 
             data["fullName"].strip(),
 
@@ -448,18 +609,25 @@ def create_booking(data):
         )
     )
 
+
     conn.commit()
+
 
     booking_id = cur.lastrowid
 
+
     conn.close()
+
 
     return booking_id
 
 
-def list_bookings(status_filter=None):
+def list_bookings(
+    status_filter=None
+):
 
     conn = get_db()
+
 
     if status_filter:
 
@@ -487,7 +655,9 @@ def list_bookings(status_filter=None):
             """
         ).fetchall()
 
+
     conn.close()
+
 
     return [
         dict(row)
@@ -495,7 +665,10 @@ def list_bookings(status_filter=None):
     ]
 
 
-def update_booking(booking_id, fields):
+def update_booking(
+    booking_id,
+    fields
+):
 
     allowed = {
         "payment_status",
@@ -504,9 +677,11 @@ def update_booking(booking_id, fields):
         "payfast_payment_id"
     }
 
+
     sets = []
 
     values = []
+
 
     for key, value in fields.items():
 
@@ -516,17 +691,22 @@ def update_booking(booking_id, fields):
                 f"{key} = ?"
             )
 
-            values.append(value)
+            values.append(
+                value
+            )
+
 
     if not sets:
-
         return False
+
 
     values.append(
         booking_id
     )
 
+
     conn = get_db()
+
 
     conn.execute(
         f"""
@@ -537,38 +717,54 @@ def update_booking(booking_id, fields):
         values
     )
 
-    changed = conn.total_changes > 0
+
+    changed = (
+        conn.total_changes > 0
+    )
+
 
     conn.commit()
 
     conn.close()
+
 
     return changed
 
 
-def delete_booking(booking_id):
+def delete_booking(
+    booking_id
+):
 
     conn = get_db()
 
+
     conn.execute(
-        "DELETE FROM bookings WHERE id = ?",
+        """
+        DELETE FROM bookings
+        WHERE id = ?
+        """,
         (booking_id,)
     )
+
 
     conn.commit()
 
     conn.close()
 
 
-def find_booking_by_m_payment_id(m_payment_id):
+def find_booking_by_m_payment_id(
+    m_payment_id
+):
 
     match = re.match(
-        r"KEYZINK-(\d+)-",
+        r"^KEYZINK-(\d+)-",
         m_payment_id or ""
     )
 
+
     if not match:
         return None
+
 
     return int(
         match.group(1)
@@ -579,9 +775,14 @@ def stats():
 
     conn = get_db()
 
+
     total = conn.execute(
-        "SELECT COUNT(*) c FROM bookings"
+        """
+        SELECT COUNT(*) c
+        FROM bookings
+        """
     ).fetchone()["c"]
+
 
     paid = conn.execute(
         """
@@ -591,6 +792,7 @@ def stats():
         """
     ).fetchone()["c"]
 
+
     pending = conn.execute(
         """
         SELECT COUNT(*) c
@@ -598,6 +800,7 @@ def stats():
         WHERE payment_status = 'pending'
         """
     ).fetchone()["c"]
+
 
     revenue = conn.execute(
         """
@@ -610,7 +813,9 @@ def stats():
         """
     ).fetchone()["r"]
 
+
     conn.close()
+
 
     return {
         "total_bookings": total,
@@ -621,59 +826,99 @@ def stats():
 
 
 # ==========================================================================
-# PAYFAST
+# PAYFAST HELPERS
 # ==========================================================================
 
-def payfast_signature_valid(fields):
+def payfast_signature_valid(
+    fields
+):
 
-    if not PAYFAST_PASSPHRASE:
+    signature = fields.get(
+        "signature",
+        ""
+    )
+
+
+    if not signature:
 
         print(
-            "PayFast: no passphrase configured; "
-            "signature verification skipped."
+            "PayFast ITN: no signature received."
         )
 
-        return True
+        return False
+
+
+    # --------------------------------------------------------------
+    # Build the parameter string in the same order PayFast sent it.
+    # --------------------------------------------------------------
 
     pairs = []
 
-    for key in fields:
+
+    for key, value in fields.items():
 
         if key == "signature":
             continue
 
-        value = fields[key]
 
         pairs.append(
-            f"{key}={urllib.parse.quote_plus(str(value))}"
+            f"{key}="
+            + urllib.parse.quote_plus(
+                str(value)
+            )
         )
 
-    pairs.append(
-        "passphrase="
-        + urllib.parse.quote_plus(
-            PAYFAST_PASSPHRASE
+
+    # --------------------------------------------------------------
+    # Passphrase
+    # --------------------------------------------------------------
+
+    if PAYFAST_PASSPHRASE:
+
+        pairs.append(
+            "passphrase="
+            + urllib.parse.quote_plus(
+                PAYFAST_PASSPHRASE
+            )
         )
-    )
+
 
     param_string = "&".join(
         pairs
     )
 
+
     computed = hashlib.md5(
-        param_string.encode()
+        param_string.encode(
+            "utf-8"
+        )
     ).hexdigest()
 
-    return hmac.compare_digest(
-        computed,
-        fields.get("signature", "")
+
+    valid = hmac.compare_digest(
+        computed.lower(),
+        signature.lower()
     )
 
 
-def payfast_server_confirms(raw_body):
+    if not valid:
+
+        print(
+            "PayFast ITN: signature verification failed."
+        )
+
+
+    return valid
+
+
+def payfast_server_confirms(
+    raw_body
+):
 
     try:
 
         request = urllib.request.Request(
+
             PAYFAST_VALIDATE_URL,
 
             data=raw_body,
@@ -686,17 +931,31 @@ def payfast_server_confirms(raw_body):
             method="POST"
         )
 
+
         with urllib.request.urlopen(
             request,
-            timeout=8
+            timeout=15
         ) as response:
 
-            return (
-                response.read()
-                .decode()
+            result = (
+                response
+                .read()
+                .decode(
+                    "utf-8",
+                    errors="replace"
+                )
                 .strip()
-                == "VALID"
             )
+
+
+            print(
+                "PayFast validation response:",
+                result
+            )
+
+
+            return result == "VALID"
+
 
     except Exception as error:
 
@@ -706,6 +965,59 @@ def payfast_server_confirms(raw_body):
         )
 
         return False
+
+
+def payfast_amount_valid(
+    fields,
+    booking_id
+):
+
+    try:
+
+        received_amount = float(
+            fields.get(
+                "amount",
+                "0"
+            )
+        )
+
+    except (
+        ValueError,
+        TypeError
+    ):
+
+        return False
+
+
+    conn = get_db()
+
+
+    row = conn.execute(
+        """
+        SELECT deposit_amount
+        FROM bookings
+        WHERE id = ?
+        """,
+        (booking_id,)
+    ).fetchone()
+
+
+    conn.close()
+
+
+    if not row:
+        return False
+
+
+    expected_amount = float(
+        row["deposit_amount"]
+    )
+
+
+    return abs(
+        received_amount
+        - expected_amount
+    ) < 0.01
 
 
 # ==========================================================================
@@ -719,9 +1031,9 @@ class Handler(
     server_version = "KeyzInk/1.0"
 
 
-    # ----------------------------------------------------------------------
-    # JSON
-    # ----------------------------------------------------------------------
+    # ======================================================================
+    # JSON RESPONSE
+    # ======================================================================
 
     def send_json(
         self,
@@ -732,21 +1044,33 @@ class Handler(
 
         body = json.dumps(
             obj
-        ).encode("utf-8")
+        ).encode(
+            "utf-8"
+        )
+
 
         self.send_response(
             status
         )
+
 
         self.send_header(
             "Content-Type",
             "application/json; charset=utf-8"
         )
 
+
         self.send_header(
             "Content-Length",
             str(len(body))
         )
+
+
+        self.send_header(
+            "Cache-Control",
+            "no-store"
+        )
+
 
         for key, value in (
             extra_headers or {}
@@ -757,16 +1081,18 @@ class Handler(
                 value
             )
 
+
         self.end_headers()
+
 
         self.wfile.write(
             body
         )
 
 
-    # ----------------------------------------------------------------------
+    # ======================================================================
     # REQUEST BODY
-    # ----------------------------------------------------------------------
+    # ======================================================================
 
     def read_json_body(self):
 
@@ -783,17 +1109,22 @@ class Handler(
 
             return {}
 
+
         if length <= 0:
             return {}
+
 
         raw = self.rfile.read(
             length
         )
 
+
         try:
 
             return json.loads(
-                raw.decode("utf-8")
+                raw.decode(
+                    "utf-8"
+                )
             )
 
         except (
@@ -819,17 +1150,19 @@ class Handler(
 
             return b""
 
+
         if length <= 0:
             return b""
+
 
         return self.rfile.read(
             length
         )
 
 
-    # ----------------------------------------------------------------------
+    # ======================================================================
     # COOKIES
-    # ----------------------------------------------------------------------
+    # ======================================================================
 
     def get_session_token(self):
 
@@ -837,10 +1170,13 @@ class Handler(
             "Cookie"
         )
 
+
         if not raw_cookie:
             return None
 
+
         jar = cookies.SimpleCookie()
+
 
         try:
 
@@ -852,11 +1188,13 @@ class Handler(
 
             return None
 
+
         if SESSION_COOKIE_NAME in jar:
 
             return jar[
                 SESSION_COOKIE_NAME
             ].value
+
 
         return None
 
@@ -865,9 +1203,11 @@ class Handler(
 
         token = self.get_session_token()
 
+
         session = get_session(
             token
         )
+
 
         if not session:
 
@@ -881,6 +1221,7 @@ class Handler(
 
             return None
 
+
         return session
 
 
@@ -892,27 +1233,41 @@ class Handler(
 
         cookie = cookies.SimpleCookie()
 
+
         cookie[
             SESSION_COOKIE_NAME
         ] = token
+
 
         cookie[
             SESSION_COOKIE_NAME
         ]["path"] = "/"
 
+
         cookie[
             SESSION_COOKIE_NAME
         ]["httponly"] = True
 
+
         cookie[
             SESSION_COOKIE_NAME
         ]["samesite"] = "Lax"
+
 
         cookie[
             SESSION_COOKIE_NAME
         ]["expires"] = expires.strftime(
             "%a, %d %b %Y %H:%M:%S GMT"
         )
+
+
+        # Secure should be used on HTTPS hosting.
+        if PAYFAST_MODE == "live":
+
+            cookie[
+                SESSION_COOKIE_NAME
+            ]["secure"] = True
+
 
         return cookie[
             SESSION_COOKIE_NAME
@@ -923,40 +1278,50 @@ class Handler(
 
         cookie = cookies.SimpleCookie()
 
+
         cookie[
             SESSION_COOKIE_NAME
         ] = ""
+
 
         cookie[
             SESSION_COOKIE_NAME
         ]["path"] = "/"
 
+
         cookie[
             SESSION_COOKIE_NAME
         ]["max-age"] = 0
+
 
         return cookie[
             SESSION_COOKIE_NAME
         ].OutputString()
 
 
-    # ----------------------------------------------------------------------
+    # ======================================================================
     # STATIC FILE SERVING
-    # ----------------------------------------------------------------------
+    # ======================================================================
 
-    def serve_static(self, path):
+    def serve_static(
+        self,
+        path
+    ):
 
         # --------------------------------------------------------------
         # Route shortcuts
         # --------------------------------------------------------------
 
         if path == "/":
+
             path = "/index.html"
+
 
         elif path in (
             "/admin",
             "/admin/"
         ):
+
             path = "/admin.html"
 
 
@@ -964,16 +1329,16 @@ class Handler(
         # Windows-safe path handling
         # --------------------------------------------------------------
 
-        # Convert URL separators to the OS-independent form.
-        relative_path = path.lstrip("/\\")
+        relative_path = path.lstrip(
+            "/\\"
+        )
 
-        # Prevent weird URL/path combinations.
+
         relative_path = os.path.normpath(
             relative_path
         )
 
-        # If normalisation somehow produces a parent traversal,
-        # reject it.
+
         if (
             relative_path == ".."
             or relative_path.startswith(
@@ -990,7 +1355,7 @@ class Handler(
 
 
         # --------------------------------------------------------------
-        # Build absolute path
+        # Absolute path
         # --------------------------------------------------------------
 
         full_path = os.path.abspath(
@@ -1002,9 +1367,7 @@ class Handler(
 
 
         # --------------------------------------------------------------
-        # Proper security check
-        #
-        # commonpath() is safer than startswith().
+        # Security check
         # --------------------------------------------------------------
 
         try:
@@ -1037,7 +1400,7 @@ class Handler(
 
 
         # --------------------------------------------------------------
-        # File must exist
+        # File existence
         # --------------------------------------------------------------
 
         if not os.path.isfile(
@@ -1101,9 +1464,11 @@ class Handler(
                 "font/ttf"
         }
 
+
         extension = os.path.splitext(
             full_path
         )[1].lower()
+
 
         content_type = content_types.get(
             extension,
@@ -1112,7 +1477,7 @@ class Handler(
 
 
         # --------------------------------------------------------------
-        # Read and send
+        # Read file
         # --------------------------------------------------------------
 
         try:
@@ -1138,31 +1503,36 @@ class Handler(
             200
         )
 
+
         self.send_header(
             "Content-Type",
             content_type
         )
+
 
         self.send_header(
             "Content-Length",
             str(len(body))
         )
 
+
         self.send_header(
             "Cache-Control",
             "no-cache"
         )
 
+
         self.end_headers()
+
 
         self.wfile.write(
             body
         )
 
 
-    # ==========================================================================
+    # ======================================================================
     # GET
-    # ==========================================================================
+    # ======================================================================
 
     def do_GET(self):
 
@@ -1170,7 +1540,9 @@ class Handler(
             self.path
         )
 
+
         path = parsed.path
+
 
         query = urllib.parse.parse_qs(
             parsed.query
@@ -1185,6 +1557,7 @@ class Handler(
 
             session = self.require_admin()
 
+
             if session:
 
                 self.send_json(
@@ -1193,6 +1566,7 @@ class Handler(
                             session["username"]
                     }
                 )
+
 
             return
 
@@ -1205,13 +1579,16 @@ class Handler(
 
             session = self.require_admin()
 
+
             if not session:
                 return
+
 
             status_filter = query.get(
                 "status",
                 [None]
             )[0]
+
 
             self.send_json(
                 {
@@ -1221,6 +1598,7 @@ class Handler(
                         )
                 }
             )
+
 
             return
 
@@ -1233,12 +1611,15 @@ class Handler(
 
             session = self.require_admin()
 
+
             if not session:
                 return
+
 
             self.send_json(
                 stats()
             )
+
 
             return
 
@@ -1252,15 +1633,16 @@ class Handler(
         )
 
 
-    # ==========================================================================
+    # ======================================================================
     # POST
-    # ==========================================================================
+    # ======================================================================
 
     def do_POST(self):
 
         parsed = urllib.parse.urlparse(
             self.path
         )
+
 
         path = parsed.path
 
@@ -1273,11 +1655,13 @@ class Handler(
 
             data = self.read_json_body()
 
+
             missing = [
                 field
                 for field in REQUIRED_BOOKING_FIELDS
                 if not data.get(field)
             ]
+
 
             if missing:
 
@@ -1285,7 +1669,9 @@ class Handler(
                     {
                         "error":
                             "Missing fields: "
-                            + ", ".join(missing)
+                            + ", ".join(
+                                missing
+                            )
                     },
                     status=400
                 )
@@ -1305,6 +1691,7 @@ class Handler(
                     "Booking creation error:",
                     error
                 )
+
 
                 self.send_json(
                     {
@@ -1327,6 +1714,7 @@ class Handler(
                 }
             )
 
+
             return
 
 
@@ -1338,12 +1726,14 @@ class Handler(
 
             data = self.read_json_body()
 
+
             username = str(
                 data.get(
                     "username",
                     ""
                 )
             ).strip()
+
 
             password = str(
                 data.get(
@@ -1362,9 +1752,11 @@ class Handler(
                     username
                 )
 
+
                 self.send_json(
                     {
                         "ok": True,
+
                         "username":
                             username
                     },
@@ -1378,6 +1770,7 @@ class Handler(
                     }
                 )
 
+
             else:
 
                 self.send_json(
@@ -1387,6 +1780,7 @@ class Handler(
                     },
                     status=401
                 )
+
 
             return
 
@@ -1399,14 +1793,18 @@ class Handler(
 
             token = self.get_session_token()
 
+
             if token:
+
                 delete_session(
                     token
                 )
 
+
             self.send_json(
                 {
-                    "ok": True
+                    "ok":
+                        True
                 },
 
                 extra_headers={
@@ -1414,6 +1812,7 @@ class Handler(
                         self.clear_session_cookie()
                 }
             )
+
 
             return
 
@@ -1426,16 +1825,31 @@ class Handler(
 
             raw = self.read_raw_body()
 
+
+            if not raw:
+
+                self.send_error(
+                    400,
+                    "Empty PayFast payload"
+                )
+
+                return
+
+
+            # ----------------------------------------------------------
+            # Parse PayFast payload
+            # ----------------------------------------------------------
+
             try:
 
-                fields = {
-                    key: values[0]
-
-                    for key, values
-                    in urllib.parse.parse_qs(
-                        raw.decode("utf-8")
-                    ).items()
-                }
+                parsed_pairs = (
+                    urllib.parse.parse_qsl(
+                        raw.decode(
+                            "utf-8"
+                        ),
+                        keep_blank_values=True
+                    )
+                )
 
             except (
                 UnicodeDecodeError,
@@ -1450,14 +1864,75 @@ class Handler(
                 return
 
 
+            fields = dict(
+                parsed_pairs
+            )
+
+
+            print()
+            print(
+                "========== PAYFAST ITN =========="
+            )
+
+
+            print(
+                "Payment ID:",
+                fields.get(
+                    "pf_payment_id",
+                    ""
+                )
+            )
+
+
+            print(
+                "Merchant ID:",
+                fields.get(
+                    "merchant_id",
+                    ""
+                )
+            )
+
+
+            print(
+                "Payment status:",
+                fields.get(
+                    "payment_status",
+                    ""
+                )
+            )
+
+
+            print(
+                "Amount:",
+                fields.get(
+                    "amount",
+                    ""
+                )
+            )
+
+
+            print(
+                "Booking reference:",
+                fields.get(
+                    "m_payment_id",
+                    ""
+                )
+            )
+
+
+            # ----------------------------------------------------------
+            # Signature verification
+            # ----------------------------------------------------------
+
             if not payfast_signature_valid(
                 fields
             ):
 
                 print(
-                    "PayFast ITN: signature "
-                    "check failed."
+                    "PayFast ITN rejected: "
+                    "invalid signature."
                 )
+
 
                 self.send_response(
                     400
@@ -1468,24 +1943,132 @@ class Handler(
                 return
 
 
-            booking_id = find_booking_by_m_payment_id(
-                fields.get(
-                    "m_payment_id"
-                )
-            )
+            # ----------------------------------------------------------
+            # Merchant ID verification
+            # ----------------------------------------------------------
 
-            payment_status = fields.get(
-                "payment_status",
+            received_merchant_id = fields.get(
+                "merchant_id",
                 ""
             )
 
 
             if (
-                booking_id
-                and payment_status == "COMPLETE"
+                PAYFAST_MERCHANT_ID
+                and
+                received_merchant_id
+                != PAYFAST_MERCHANT_ID
             ):
 
-                update_booking(
+                print(
+                    "PayFast ITN rejected: "
+                    "merchant ID mismatch."
+                )
+
+
+                self.send_response(
+                    400
+                )
+
+                self.end_headers()
+
+                return
+
+
+            # ----------------------------------------------------------
+            # Booking reference
+            # ----------------------------------------------------------
+
+            m_payment_id = fields.get(
+                "m_payment_id",
+                ""
+            )
+
+
+            booking_id = (
+                find_booking_by_m_payment_id(
+                    m_payment_id
+                )
+            )
+
+
+            if not booking_id:
+
+                print(
+                    "PayFast ITN: could not find "
+                    "KEYZ INK booking ID."
+                )
+
+
+                self.send_response(
+                    400
+                )
+
+                self.end_headers()
+
+                return
+
+
+            # ----------------------------------------------------------
+            # Amount verification
+            # ----------------------------------------------------------
+
+            if not payfast_amount_valid(
+                fields,
+                booking_id
+            ):
+
+                print(
+                    "PayFast ITN rejected: "
+                    "amount mismatch."
+                )
+
+
+                self.send_response(
+                    400
+                )
+
+                self.end_headers()
+
+                return
+
+
+            # ----------------------------------------------------------
+            # PayFast server validation
+            # ----------------------------------------------------------
+
+            if not payfast_server_confirms(
+                raw
+            ):
+
+                print(
+                    "PayFast ITN rejected: "
+                    "PayFast server validation failed."
+                )
+
+
+                self.send_response(
+                    400
+                )
+
+                self.end_headers()
+
+                return
+
+
+            # ----------------------------------------------------------
+            # Payment status
+            # ----------------------------------------------------------
+
+            payment_status = fields.get(
+                "payment_status",
+                ""
+            ).upper()
+
+
+            if payment_status == "COMPLETE":
+
+                updated = update_booking(
                     booking_id,
                     {
                         "payment_status":
@@ -1499,11 +2082,38 @@ class Handler(
                     }
                 )
 
+
+                if updated:
+
+                    print(
+                        f"PayFast ITN: booking "
+                        f"#{booking_id} marked PAID."
+                    )
+
+                else:
+
+                    print(
+                        f"PayFast ITN: booking "
+                        f"#{booking_id} was not updated."
+                    )
+
+
+            else:
+
                 print(
-                    f"PayFast ITN: booking "
-                    f"#{booking_id} marked paid."
+                    "PayFast ITN: payment was not COMPLETE."
                 )
 
+
+            print(
+                "================================="
+            )
+            print()
+
+
+            # ----------------------------------------------------------
+            # Respond to PayFast
+            # ----------------------------------------------------------
 
             self.send_response(
                 200
@@ -1514,14 +2124,18 @@ class Handler(
             return
 
 
+        # --------------------------------------------------------------
+        # Unknown POST
+        # --------------------------------------------------------------
+
         self.send_error(
             404
         )
 
 
-    # ==========================================================================
+    # ======================================================================
     # PATCH
-    # ==========================================================================
+    # ======================================================================
 
     def do_PATCH(self):
 
@@ -1529,7 +2143,9 @@ class Handler(
             self.path
         )
 
+
         path = parsed.path
+
 
         match = re.match(
             r"^/api/admin/bookings/(\d+)$",
@@ -1541,19 +2157,24 @@ class Handler(
 
             session = self.require_admin()
 
+
             if not session:
                 return
+
 
             booking_id = int(
                 match.group(1)
             )
 
+
             data = self.read_json_body()
+
 
             ok = update_booking(
                 booking_id,
                 data
             )
+
 
             self.send_json(
                 {
@@ -1562,6 +2183,7 @@ class Handler(
                 }
             )
 
+
             return
 
 
@@ -1570,9 +2192,9 @@ class Handler(
         )
 
 
-    # ==========================================================================
+    # ======================================================================
     # DELETE
-    # ==========================================================================
+    # ======================================================================
 
     def do_DELETE(self):
 
@@ -1580,7 +2202,9 @@ class Handler(
             self.path
         )
 
+
         path = parsed.path
+
 
         match = re.match(
             r"^/api/admin/bookings/(\d+)$",
@@ -1592,16 +2216,20 @@ class Handler(
 
             session = self.require_admin()
 
+
             if not session:
                 return
+
 
             booking_id = int(
                 match.group(1)
             )
 
+
             delete_booking(
                 booking_id
             )
+
 
             self.send_json(
                 {
@@ -1609,6 +2237,7 @@ class Handler(
                         True
                 }
             )
+
 
             return
 
@@ -1618,9 +2247,9 @@ class Handler(
         )
 
 
-    # ==========================================================================
+    # ======================================================================
     # LOGGING
-    # ==========================================================================
+    # ======================================================================
 
     def log_message(
         self,
@@ -1652,7 +2281,10 @@ class ThreadingHTTPServer(
 
 def main():
 
-    # Make sure the public folder exists.
+    # ----------------------------------------------------------------------
+    # Public folder
+    # ----------------------------------------------------------------------
+
     if not os.path.isdir(
         PUBLIC_DIR
     ):
@@ -1661,21 +2293,87 @@ def main():
         print(
             "ERROR: public folder was not found:"
         )
-
         print(
             PUBLIC_DIR
         )
-
         print()
 
         return
 
 
-    # Initialise database.
+    # ----------------------------------------------------------------------
+    # Database
+    # ----------------------------------------------------------------------
+
     init_db()
 
 
-    # Start server.
+    # ----------------------------------------------------------------------
+    # Startup information
+    # ----------------------------------------------------------------------
+
+    print("=" * 70)
+
+    print(
+        "KEYZ INK SERVER"
+    )
+
+    print(
+        f"Mode: {PAYFAST_MODE.upper()}"
+    )
+
+    print(
+        f"Port: {PORT}"
+    )
+
+    print(
+        f"Public site: "
+        f"http://localhost:{PORT}/"
+    )
+
+    print(
+        f"Admin: "
+        f"http://localhost:{PORT}/admin"
+    )
+
+    print(
+        f"PayFast process URL: "
+        f"{PAYFAST_PROCESS_URL}"
+    )
+
+    print(
+        f"PayFast validation URL: "
+        f"{PAYFAST_VALIDATE_URL}"
+    )
+
+    print(
+        "Merchant ID configured:",
+        "YES"
+        if PAYFAST_MERCHANT_ID
+        else "NO"
+    )
+
+    print(
+        "Merchant Key configured:",
+        "YES"
+        if PAYFAST_MERCHANT_KEY
+        else "NO"
+    )
+
+    print(
+        "Passphrase configured:",
+        "YES"
+        if PAYFAST_PASSPHRASE
+        else "NO"
+    )
+
+    print("=" * 70)
+
+
+    # ----------------------------------------------------------------------
+    # Start server
+    # ----------------------------------------------------------------------
+
     server = ThreadingHTTPServer(
         (
             "0.0.0.0",
@@ -1684,25 +2382,6 @@ def main():
         Handler
     )
 
-
-    print("=" * 70)
-
-    print(
-        f"KEYZ INK server running:"
-        f" http://0.0.0.0:{PORT}"
-    )
-
-    print(
-        f"Public site:"
-        f" http://localhost:{PORT}/"
-    )
-
-    print(
-        f"Admin login:"
-        f" http://localhost:{PORT}/admin"
-    )
-
-    print("=" * 70)
 
     try:
 

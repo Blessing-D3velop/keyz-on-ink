@@ -14,18 +14,20 @@
 </head>
 <body>
 
-<div class="grain"></div>
+<!-- Ambient animated background: soft moving gradients + slow particle drift.
+     Fixed behind all content, respects prefers-reduced-motion (see style.css). -->
+<div class="ambient-bg" aria-hidden="true"></div>
 
 <!-- HEADER -->
 <header class="site-header" id="siteHeader">
   <div class="header-inner">
 
     <a href="#home" class="logo">
-      <div class="logo-orbit">
+      <span class="logo-mark">
         <span class="orbit orbit-one"></span>
         <span class="orbit orbit-two"></span>
-        <img src="images/logo.jpeg" alt="KEYZ INK Tattoo Lifestyle Shop">
-      </div>
+        <img src="images/keyz-ink-logo.png" alt="KEYZ INK Tattoo Lifestyle Shop">
+      </span>
       <span class="logo-text">
         <span class="logo-keyz">KEYZ</span><span class="logo-ink">INK</span>
       </span>
@@ -51,7 +53,7 @@
 <!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-bg">
-    <img src="https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?q=80&w=1800&auto=format&fit=crop" alt="" loading="eager">
+    <img src="images/hero-img.jpeg" alt="" loading="eager">
     <div class="hero-overlay"></div>
   </div>
 
@@ -60,6 +62,11 @@
 
   <div class="hero-content">
     <p class="hero-eyebrow">Protea Glen · Soweto</p>
+
+    <figure class="hero-location-image">
+      <img src="images/location.jpg" alt="KEYZ INK studio location in Protea Glen, Soweto">
+    </figure>
+
     <h1 class="hero-title">
       Premium Tattoos<br>&amp; Piercings<br>in Soweto
     </h1>
@@ -141,6 +148,11 @@
                 </div>
             </div>
 
+            <figure class="location-image">
+                <img src="images/location.jpg" alt="KEYZ INK studio location in Protea Glen, Soweto">
+                <span class="location-image-caption">Protea Glen, Soweto</span>
+            </figure>
+
         </div>
 
     </div>
@@ -178,6 +190,33 @@
           <li>Eyebrow</li>
           <li>Body Piercing</li>
         </ul>
+      </div>
+
+      <div class="glass-card service-card">
+        <div class="service-icon"><i class="fa-solid fa-eraser"></i></div>
+        <h3>Tattoo Removal</h3>
+        <p class="service-desc">
+            KEYZ INK offers professional tattoo removal treatments for
+            clients looking to fade or fully remove existing ink. Every
+            removal plan is assessed and quoted individually, based on
+            the size, age, colour and placement of the tattoo.
+        </p>
+        <div class="service-price-tag">
+            <i class="fa-solid fa-comments"></i> Priced on consultation
+        </div>
+      </div>
+
+      <div class="glass-card service-card">
+        <div class="service-icon"><i class="fa-solid fa-moon"></i></div>
+        <h3>After-Hours Appointments</h3>
+        <p class="service-desc">
+            Need a slot outside our normal opening hours? After-hours
+            appointments are available by arrangement for clients who
+            can't make it during the day, charged at a flat hourly rate.
+        </p>
+        <div class="service-price-tag">
+            <i class="fa-solid fa-clock"></i> R300 / hour
+        </div>
       </div>
     </div>
   </div>
@@ -241,6 +280,24 @@
         <div class="flash-leader"></div>
         <div class="flash-price">From R4500</div>
       </div>
+
+      <div class="flash-row">
+        <div class="flash-name">
+          <span class="flash-title">Tattoo Removal</span>
+          <span class="flash-detail">Priced on consultation</span>
+        </div>
+        <div class="flash-leader"></div>
+        <div class="flash-price">Quote on request</div>
+      </div>
+
+      <div class="flash-row">
+        <div class="flash-name">
+          <span class="flash-title">After-Hours Appointment</span>
+          <span class="flash-detail">By arrangement, outside normal hours</span>
+        </div>
+        <div class="flash-leader"></div>
+        <div class="flash-price">R300 / hour</div>
+      </div>
     </div>
 
     <a href="tel:0710995517" class="booking-line"><i class="fa-solid fa-phone"></i> Booking: 071 099 5517</a>
@@ -287,6 +344,10 @@
     <p class="section-kicker">Portfolio</p>
     <h2 class="section-title">Gallery</h2>
 
+    <div class="gallery-filters" id="galleryFilters" role="tablist" aria-label="Filter gallery by category">
+      <!-- populated by script.js -->
+    </div>
+
     <div class="masonry" id="masonry">
       <!-- populated by script.js -->
     </div>
@@ -315,6 +376,14 @@
           <p>Deducted from your final tattoo or piercing price. Non-refundable on no-shows.</p>
         </div>
       </div>
+
+      <div class="glass-card deposit-note after-hours-note">
+        <i class="fa-solid fa-moon"></i>
+        <div>
+          <h4>After-hours appointments</h4>
+          <p>Available by arrangement outside normal opening hours, charged at R300 per hour.</p>
+        </div>
+      </div>
     </div>
 
     <form class="glass-card booking-form" id="bookingForm">
@@ -338,8 +407,10 @@
         <select id="serviceType" name="serviceType" required>
           <option value="" disabled selected>Choose a service</option>
           <option value="Tattoo">Tattoo</option>
-          <option value="Piercing">Piercing</option>
+          <option value="Body Piercing">Body Piercing</option>
           <option value="Consultation">Consultation</option>
+          <option value="Tattoo Removal">Tattoo Removal (priced on consultation)</option>
+          <option value="After-Hours Appointment">After-Hours Appointment (R300/hour)</option>
         </select>
       </div>
 
@@ -402,6 +473,7 @@
       <div class="hours-row"><span>Tuesday – Saturday</span><b>09:00 – 17:00</b></div>
       <div class="hours-row"><span>Sunday</span><b>09:00 – 14:00</b></div>
       <div class="hours-row"><span>Monday</span><b>Closed</b></div>
+      <div class="hours-row"><span>After-hours</span><b>By arrangement · R300/hr</b></div>
     </div>
   </div>
 </section>
@@ -413,7 +485,7 @@
         <div class="footer-brand">
 
             <a href="#home" class="footer-logo">
-                <img src="images/logo.jpeg" alt="KEYZ INK Tattoo Lifestyle Shop">
+                <img src="images/keyz-ink-logo.png" alt="KEYZ INK Tattoo Lifestyle Shop">
             </a>
 
             <p class="footer-tagline">FROM INK TO IMAGERY.</p>
@@ -452,6 +524,7 @@
             <span>Ear Piercing</span>
             <span>Tattoo Removal</span>
             <span>Permanent Makeup</span>
+            <span>After-Hours Appointments</span>
         </div>
 
         <div class="footer-column footer-contact">
@@ -461,6 +534,10 @@
             <a href="https://www.google.com/maps/search/?api=1&query=3314+Rantsoe+Street+Protea+Boulevard+Protea+Glen+Soweto+1818" target="_blank" rel="noopener">
                 <i class="fa-solid fa-location-dot"></i>
                 <span>3314 Rantsoe Street,<br>Protea Boulevard,<br>Protea Glen,<br>Soweto, 1818</span>
+            </a>
+            <a href="assets/terms-and-conditions.pdf" target="_blank" rel="noopener noreferrer">
+                <i class="fa-solid fa-file-contract"></i>
+                <span>Terms &amp; Conditions</span>
             </a>
         </div>
 
@@ -472,6 +549,8 @@
             <a href="#booking">Book an Appointment</a>
             <span>•</span>
             <a href="#contact">Contact KEYZ INK</a>
+            <span>•</span>
+            <a href="assets/terms-and-conditions.pdf" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a>
         </div>
     </div>
 

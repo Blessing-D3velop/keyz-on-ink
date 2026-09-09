@@ -31,6 +31,7 @@ const WHATSAPP_NUMBER = "27710995517";
 document.addEventListener("DOMContentLoaded", () => {
   initHeader();
   initHamburger();
+  initGalleryFilters();
   initGallery();
   initLightbox();
   initBookingForm();
@@ -68,21 +69,86 @@ function initHamburger() {
   });
 }
 
-/* ---------- Gallery (placeholder tattoo images) ---------- */
-const GALLERY_IMAGES = [
-  "images/g1.jpeg", "images/g2.jpeg", "images/g3.jpeg", "images/g4.jpeg",
-  "images/g5.jpeg", "images/g6.jpeg", "images/g7.jpeg", "images/g8.jpeg",
-  "images/g9.jpeg", "images/g10.jpeg", "images/g11.jpeg", "images/g12.jpeg",
-  "images/g13.jpeg", "images/g14.jpeg", "images/g15.jpeg", "images/g16.jpeg",
+/* ---------- Gallery data ----------
+   Each item has an image path, a category, and alt text.
+   Add more tattoos by pushing another object onto this array —
+   the filters and grid rebuild automatically.
+
+   NOTE: the categories below are a starting point based on the
+   original 16 placeholder images (g1–g16). Re-assign the
+   `category` field on any item to match the actual artwork once
+   real photos are in place — no other code needs to change.
+---------------------------------------------- */
+const GALLERY_ITEMS = [
+  { image: "images/g1.jpeg",  category: "Fine Line",    alt: "Fine line tattoo" },
+  { image: "images/g2.jpeg",  category: "Black & Grey", alt: "Black and grey tattoo" },
+  { image: "images/g3.jpeg",  category: "Realism",      alt: "Realism tattoo" },
+  { image: "images/g4.jpeg",  category: "Lettering",    alt: "Lettering tattoo" },
+  { image: "images/g5.jpeg",  category: "Colour",       alt: "Colour tattoo" },
+  { image: "images/g6.jpeg",  category: "Custom",       alt: "Custom tattoo artwork" },
+  { image: "images/g7.jpeg",  category: "Fine Line",    alt: "Fine line tattoo" },
+  { image: "images/g8.jpeg",  category: "Black & Grey", alt: "Black and grey tattoo" },
+  { image: "images/g9.jpeg",  category: "Realism",      alt: "Realism tattoo" },
+  { image: "images/g10.jpeg", category: "Lettering",    alt: "Lettering tattoo" },
+  { image: "images/g11.jpeg", category: "Colour",       alt: "Colour tattoo" },
+  { image: "images/g12.jpeg", category: "Custom",       alt: "Custom tattoo artwork" },
+  { image: "images/g13.jpeg", category: "Fine Line",    alt: "Fine line tattoo" },
+  { image: "images/g14.jpeg", category: "Black & Grey", alt: "Black and grey tattoo" },
+  { image: "images/g15.jpeg", category: "Realism",      alt: "Realism tattoo" },
+  { image: "images/g16.jpeg", category: "Custom",       alt: "Custom tattoo artwork" },
 ];
 
+const GALLERY_CATEGORIES = ["All", "Fine Line", "Black & Grey", "Realism", "Lettering", "Colour", "Custom"];
+
+let activeCategory = "All";
+let visibleItems = GALLERY_ITEMS.slice();
 let galleryIndex = 0;
 
+/* ---------- Gallery filter buttons ---------- */
+function initGalleryFilters() {
+  const filters = document.getElementById("galleryFilters");
+
+  filters.innerHTML = GALLERY_CATEGORIES.map((cat, i) => `
+    <button
+      type="button"
+      class="filter-btn${cat === activeCategory ? " active" : ""}"
+      data-category="${cat}"
+      role="tab"
+      aria-selected="${cat === activeCategory}"
+    >${cat}</button>
+  `).join("");
+
+  filters.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeCategory = btn.dataset.category;
+
+      filters.querySelectorAll(".filter-btn").forEach(b => {
+        const isActive = b === btn;
+        b.classList.toggle("active", isActive);
+        b.setAttribute("aria-selected", isActive);
+      });
+
+      renderGallery();
+    });
+  });
+}
+
+/* ---------- Gallery grid (rebuilds on filter change) ---------- */
 function initGallery() {
+  renderGallery();
+}
+
+function renderGallery() {
   const masonry = document.getElementById("masonry");
-  masonry.innerHTML = GALLERY_IMAGES.map((src, i) => `
-    <div class="masonry-item" data-index="${i}">
-      <img src="${src}" alt="Tattoo artwork ${i + 1}" loading="lazy">
+
+  visibleItems = activeCategory === "All"
+    ? GALLERY_ITEMS.slice()
+    : GALLERY_ITEMS.filter(item => item.category === activeCategory);
+
+  masonry.innerHTML = visibleItems.map((item, i) => `
+    <div class="masonry-item" data-index="${i}" style="animation-delay:${Math.min(i, 8) * 0.04}s">
+      <img src="${item.image}" alt="${item.alt}" loading="lazy">
+      <span class="masonry-item-tag">${item.category}</span>
     </div>
   `).join("");
 
@@ -91,7 +157,7 @@ function initGallery() {
   });
 }
 
-/* ---------- Lightbox ---------- */
+/* ---------- Lightbox (steps through the currently filtered set) ---------- */
 function initLightbox() {
   document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
   document.getElementById("lightboxPrev").addEventListener("click", () => stepLightbox(-1));
@@ -110,14 +176,20 @@ function initLightbox() {
 
 function openLightbox(index) {
   galleryIndex = index;
-  document.getElementById("lightboxImg").src = GALLERY_IMAGES[galleryIndex];
+  const item = visibleItems[galleryIndex];
+  const img = document.getElementById("lightboxImg");
+  img.src = item.image;
+  img.alt = item.alt;
   document.getElementById("lightbox").classList.add("open");
   document.body.style.overflow = "hidden";
 }
 
 function stepLightbox(dir) {
-  galleryIndex = (galleryIndex + dir + GALLERY_IMAGES.length) % GALLERY_IMAGES.length;
-  document.getElementById("lightboxImg").src = GALLERY_IMAGES[galleryIndex];
+  galleryIndex = (galleryIndex + dir + visibleItems.length) % visibleItems.length;
+  const item = visibleItems[galleryIndex];
+  const img = document.getElementById("lightboxImg");
+  img.src = item.image;
+  img.alt = item.alt;
 }
 
 function closeLightbox() {
