@@ -2900,11 +2900,18 @@ ul {
 
         gap: 24px;
 
-        background:
-            rgba(5, 5, 5, .97);
+        overflow: hidden;
 
-        backdrop-filter:
-            blur(25px);
+        /* Same moving pink gradient as the page's ambient background */
+        background:
+            radial-gradient(circle at 18% 22%, rgba(255, 47, 104, .16), transparent 42%),
+            radial-gradient(circle at 82% 18%, rgba(255, 86, 132, .10), transparent 40%),
+            radial-gradient(circle at 50% 85%, rgba(255, 47, 104, .11), transparent 45%),
+            linear-gradient(180deg, #0a0a0c 0%, #0d0a0d 45%, #0a0a0c 100%);
+
+        background-size: 180% 180%, 180% 180%, 180% 180%, 100% 100%;
+
+        animation: ambientDrift 34s ease-in-out infinite alternate;
 
         border-left:
             1px solid rgba(255, 255, 255, .08);
@@ -2916,12 +2923,38 @@ ul {
             transform .45s var(--ease);
     }
 
+    /* Same drifting particle dots as the page's ambient background */
+    .main-nav::after {
+        content: "";
+
+        position: absolute;
+        inset: 0;
+
+        background-image:
+            radial-gradient(rgba(255, 255, 255, .55) 1px, transparent 1.6px),
+            radial-gradient(rgba(255, 47, 104, .5) 1px, transparent 1.6px);
+
+        background-size: 260px 260px, 340px 340px;
+        background-position: 0 0, 90px 140px;
+
+        opacity: .28;
+
+        animation: particleFloat 60s linear infinite;
+
+        pointer-events: none;
+
+        z-index: 0;
+    }
+
     .main-nav.open {
         transform:
             translateX(0);
     }
 
-    .nav-link {
+    .main-nav .nav-link {
+        position: relative;
+        z-index: 1;
+
         font-size: .9rem;
     }
 }
