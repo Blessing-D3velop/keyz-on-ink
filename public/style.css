@@ -486,7 +486,7 @@ ul {
 
     position: relative;
     z-index: 2;
-    border-radius: 999px;
+
     transition: transform .35s var(--ease);
 }
 
@@ -2245,7 +2245,7 @@ ul {
 
 
 /* =========================================================
-   SOCIAL ICONS
+   SOCIAL ICONS — original brand colors
    ========================================================= */
 
 .socials {
@@ -2265,39 +2265,67 @@ ul {
 
     border-radius: 50%;
 
-    background:
-        rgba(255, 255, 255, .035);
-
-    border:
-        1px solid rgba(255, 255, 255, .12);
-
-    color:
-        rgba(255, 255, 255, .7);
+    color: #fff;
 
     font-size: 1rem;
 
+    border: 1px solid transparent;
+
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, .3);
+
     transition:
         transform .35s var(--ease),
-        color .3s ease,
-        background .3s ease,
-        border-color .3s ease,
-        box-shadow .3s ease;
+        box-shadow .35s ease,
+        filter .3s ease;
 }
 
 .socials a:hover {
     transform:
         translateY(-5px);
 
-    color: var(--pink);
+    filter: brightness(1.08);
+}
 
-    border-color: var(--pink);
-
+.social-instagram {
     background:
-        rgba(255, 47, 104, .08);
+        linear-gradient(
+            45deg,
+            #f09433 0%,
+            #e6683c 25%,
+            #dc2743 50%,
+            #cc2366 75%,
+            #bc1888 100%
+        );
+}
 
+.social-instagram:hover {
     box-shadow:
-        0 10px 30px
-        rgba(255, 47, 104, .15);
+        0 12px 28px
+        rgba(220, 39, 67, .4);
+}
+
+.social-facebook {
+    background: #1877f2;
+}
+
+.social-facebook:hover {
+    box-shadow:
+        0 12px 28px
+        rgba(24, 119, 242, .4);
+}
+
+.social-tiktok {
+    background: #010101;
+
+    border-color:
+        rgba(255, 255, 255, .16);
+}
+
+.social-tiktok:hover {
+    box-shadow:
+        0 10px 22px rgba(37, 244, 238, .25),
+        0 10px 22px rgba(254, 44, 85, .25);
 }
 
 
@@ -2692,10 +2720,11 @@ ul {
 
 
 /* =========================================================
-   WHATSAPP FLOAT
+   SOCIAL FLOAT STACK — original brand colors
+   WhatsApp, TikTok, Instagram, Facebook stacked bottom-right
    ========================================================= */
 
-.whatsapp-float {
+.social-float-stack {
     position: fixed;
 
     right: 24px;
@@ -2703,50 +2732,94 @@ ul {
 
     z-index: 900;
 
-    width: 58px;
-    height: 58px;
+    display: flex;
 
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.social-float {
     display: flex;
 
     align-items: center;
     justify-content: center;
 
+    width: 46px;
+    height: 46px;
+
     border-radius: 50%;
 
-    background: var(--pink);
+    color: #fff;
 
-    color: #000;
-
-    font-size: 1.4rem;
+    font-size: 1.1rem;
 
     box-shadow:
-        0 10px 35px
-        rgba(255, 47, 104, .3);
-
-    animation:
-        whatsappPulse 2.5s ease-in-out infinite;
+        0 8px 22px rgba(0, 0, 0, .35);
 
     transition:
-        transform .35s var(--ease);
+        transform .35s var(--ease),
+        box-shadow .35s ease;
 }
 
-.whatsapp-float:hover {
+.social-float:hover {
     transform:
         scale(1.1)
         rotate(-5deg);
+}
+
+.social-float-facebook {
+    background: #1877f2;
+}
+
+.social-float-instagram {
+    background:
+        linear-gradient(
+            45deg,
+            #f09433 0%,
+            #e6683c 25%,
+            #dc2743 50%,
+            #cc2366 75%,
+            #bc1888 100%
+        );
+}
+
+.social-float-tiktok {
+    background: #010101;
+
+    border:
+        1px solid rgba(255, 255, 255, .16);
+}
+
+.social-float-whatsapp {
+    width: 58px;
+    height: 58px;
+
+    font-size: 1.4rem;
+
+    background: #25d366;
+
+    box-shadow:
+        0 10px 35px
+        rgba(37, 211, 102, .35);
+
+    animation:
+        whatsappPulse 2.5s ease-in-out infinite;
 }
 
 @keyframes whatsappPulse {
     0%, 100% {
         box-shadow:
             0 10px 35px
-            rgba(255, 47, 104, .28);
+            rgba(37, 211, 102, .3);
     }
 
     50% {
         box-shadow:
             0 10px 48px
-            rgba(255, 47, 104, .55);
+            rgba(37, 211, 102, .58);
     }
 }
 
@@ -3135,15 +3208,28 @@ ul {
 
 
     /* =====================================================
-       WHATSAPP
+       SOCIAL FLOAT STACK
        ===================================================== */
 
-    .whatsapp-float {
+    .social-float-stack {
+        right: 16px;
+        bottom: 16px;
+
+        gap: 10px;
+    }
+
+    .social-float {
+        width: 40px;
+        height: 40px;
+
+        font-size: 1rem;
+    }
+
+    .social-float-whatsapp {
         width: 52px;
         height: 52px;
 
-        right: 16px;
-        bottom: 16px;
+        font-size: 1.3rem;
     }
 }
 
